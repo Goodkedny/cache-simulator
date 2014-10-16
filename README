@@ -1,0 +1,5 @@
+How to compile:
+    make
+
+How to run:
+    ./cachesim config_file trace_file
