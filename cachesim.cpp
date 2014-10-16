@@ -78,8 +78,28 @@ CacheConfig::CacheConfig(std::string config_filename) {
     //Clean up
     configFile.close();
     
+    int num_blocks = this->data_size * 1024 / this->line_size;
+    
+    //if fully associative, can change associativity to num_blocks (more uniform to work with)
+    if(this->assoc == 0){
+        this->assoc = num_blocks;
+    }
+    
+    int num_sets = num_blocks / assoc;
+    this->set_bits = 0;
+    while(num_sets > 1){
+        this->set_bits += 1;
+        num_sets >>= 1;
+    }
+    
+    
+    this->offset_bits = 0;
+    int tmp_blocksize = this->line_size;
+    while(tmp_blocksize > 1){
+        this->offset_bits += 1;
+        tmp_blocksize >>= 1;
+    }
 }
-
 
 int main(int argc, char** argv){
     if(argc != 3){
@@ -92,4 +112,8 @@ int main(int argc, char** argv){
     std::cout << "Associativity: " << testConfig.get_assoc() << std::endl;
     std::cout << "Data Size:     " << testConfig.get_data_size() << std::endl;
     std::cout << "Miss Penalty:  " << testConfig.get_miss_penalty() << std::endl;
+    std::cout << "Set index bits " << testConfig.get_set_bits() << std::endl;
+    std::cout << "Offset bits    " << testConfig.get_offset_bits() << std::endl;
+    
+    CacheSimulator simulator = CacheSimulator(&testConfig);
 }
