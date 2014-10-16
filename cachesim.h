@@ -15,6 +15,7 @@
 *************************************************************************/
 
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <vector>
 #include <deque>
@@ -45,6 +46,42 @@ private:
     unsigned offset_bits;   //number of bits specifing offset in address
     unsigned set_bits;      //number of bits specifing set index in address
 };
+
+/**
+ * Create new configuration from filename
+ */
+CacheConfig::CacheConfig(std::string config_filename) {
+    std::ifstream configFile;
+    short int buf;
+    configFile.open(config_filename);
+    configFile >> line_size; //Read in Line Size
+    configFile >> assoc; //Read in Cache Associativity
+    configFile >> data_size; //Read in Data Size
+    
+    //Read in Replacement Policy
+    configFile >> buf;
+    if (buf == 0) {
+        //Config has specified that the Replacement Policy is Random Placement
+        fifo = false;
+    } else if (buf == 0) {
+        //Config has specified that the Replacement Policy is FIFO
+        fifo = true;
+    }
+    configFile >> miss_penalty; //Read in Miss Penalty
+    
+    //Read in Write Policy
+    configFile >> buf;
+    if (buf == 0) {
+        //Config has specified that the Write Policy is No Write Allocate
+        write_allocate = false;
+    } else if (buf == 1) {
+        //Config has specified that the Write Policy is Write Allocate
+        write_allocate = true;
+    }
+    //Clean up
+    configFile.close();
+
+}
 
 class CacheSimulator{
 public:
