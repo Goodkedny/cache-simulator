@@ -27,11 +27,11 @@ using namespace std;
  */
 
 class config {
-
-public:
+private:
     //Variables for the Cache Simulation Environment
     unsigned int lineSize, cacheAsso, dataSize, missPenalty;
     bool randomPlace, noWriteAllo;
+public:
     config(string filename);
     ~config();
     void printConfig();
