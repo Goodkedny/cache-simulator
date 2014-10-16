@@ -44,8 +44,6 @@ private:
 
     unsigned offset_bits;   //number of bits specifing offset in address
     unsigned set_bits;      //number of bits specifing set index in address
-    
-    void Init(std::vector<unsigned> params);
 };
 
 class CacheSimulator{
@@ -63,7 +61,7 @@ private:
     unsigned total_cycles = 0;
     unsigned total_memory_cycles = 0;
     
-    std::vector< std::deque<int> > cache_sets;
+    std::vector< std::deque<unsigned> > cache_sets;
     
     void reset_cache();
 };

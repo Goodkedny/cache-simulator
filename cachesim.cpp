@@ -28,12 +28,12 @@ void CacheSimulator::simulateTrace(std::string filename){
  */
 void CacheSimulator::reset_cache()
 {
-    this->cache_sets = std::vector< std::deque<int> >();
+    this->cache_sets = std::vector< std::deque<unsigned> >();
     
     int num_sets = 1 << this->config->get_set_bits();
     
     for(int i = 0; i < num_sets; ++i){
-        this->cache_sets.push_back(std::deque<int>());
+        this->cache_sets.push_back(std::deque<unsigned>());
     }
     
     this->num_loads = 0;
