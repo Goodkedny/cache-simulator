@@ -27,14 +27,14 @@ public:
     CacheConfig(std::string config_filename);
     
     //getters
-    unsigned get_line_size(){return this->line_size;}
-    unsigned get_assoc(){return this->assoc;}
-    unsigned get_data_size(){return this->data_size;}
-    bool is_fifo(){return this->fifo;}
-    unsigned get_miss_penalty(){return this->miss_penalty;}
-    unsigned is_write_allocate(){return this->write_allocate;}
-    unsigned get_offset_bits(){return this->offset_bits;}
-    unsigned get_set_bits(){return this->set_bits;}
+    unsigned getLineSize(){return this->line_size;}
+    unsigned getAssoc(){return this->assoc;}
+    unsigned getDataSize(){return this->data_size;}
+    bool isFifo(){return this->fifo;}
+    unsigned getMissPenalty(){return this->miss_penalty;}
+    unsigned isWriteAllocate(){return this->write_allocate;}
+    unsigned getOffsetBits(){return this->offset_bits;}
+    unsigned getSetBits(){return this->set_bits;}
 
     //Print method
     void printConfig();
@@ -71,5 +71,9 @@ private:
     
     std::vector< std::deque<unsigned> > cache_sets;
     
-    void reset_cache();
+    void resetCache();
+    unsigned getTag(unsigned address);
+    unsigned getSet(unsigned address);
+    bool isHit(unsigned address);
+    void loadIntoCache(unsigned address);
 };

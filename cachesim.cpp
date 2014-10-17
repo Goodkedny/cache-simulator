@@ -17,7 +17,7 @@
 #include "cachesim.h"
 
 void CacheSimulator::simulateTrace(std::string filename){
-    this->reset_cache();
+    this->resetCache();
 
     std::ifstream traceFile;
     std::string buffer;
@@ -30,16 +30,16 @@ void CacheSimulator::simulateTrace(std::string filename){
     //For each Trace File instruction...
     while(getline(traceFile, buffer)) {
 
-    	sscanf(buffer.c_str(), "%c %x %d", &instruction, &address, &nonMemInstr);
+        sscanf(buffer.c_str(), "%c %x %d", &instruction, &address, &nonMemInstr);
 
-    	if (instruction == 's') {
-    		//This instruction is a Write!
-    		this->total_memory_cycles += writeInstruction(address); //Add number of memory cycles this took
-    	} else {
-    		//This instruction is a Load!
-    		this->total_memory_cycles += loadInstruction(address); //Add number of memory cycles this took
-    	}
-    	this->total_cycles += nonMemInstr; //Add previous non-memory instructions (Assumed all to take only 1 cycle each)
+        if (instruction == 's') {
+            //This instruction is a Write!
+            this->total_memory_cycles += writeInstruction(address); //Add number of memory cycles this took
+        } else {
+            //This instruction is a Load!
+            this->total_memory_cycles += loadInstruction(address); //Add number of memory cycles this took
+        }
+        this->total_cycles += nonMemInstr; //Add previous non-memory instructions (Assumed all to take only 1 cycle each)
     }
     //Cleanup
     traceFile.close();
@@ -47,16 +47,72 @@ void CacheSimulator::simulateTrace(std::string filename){
 }
 
 /**
+ * Get tag bits of address
+ */
+unsigned CacheSimulator::getTag(unsigned address){
+    return address >> (this->config->getSetBits() + this->config->getOffsetBits());
+}
+
+/**
+ * Get set index bits of address
+ */
+unsigned CacheSimulator::getSet(unsigned address){
+    return (address >> this->config->getOffsetBits()) & ((1 << this->config->getSetBits()) - 1);
+}
+
+/**
+ * determine if an address is in the cache
+ */
+bool CacheSimulator::isHit(unsigned address){
+    unsigned tag = this->getTag(address);
+    unsigned set = this->getSet(address);
+    
+    for(unsigned entry : cache_sets[set]){
+        if(tag == entry){
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Load block into cache
+ * assumes block is not in cache
+ */
+void CacheSimulator::loadIntoCache(unsigned address){
+    unsigned tag = this->getTag(address);
+    unsigned set = this->getSet(address);
+    
+    //kick someone out if necessary
+    if(this->cache_sets[set].size() == this->config->getAssoc()){
+        if(this->config->isFifo()){
+            this->cache_sets[set].pop_front();
+        }
+        else{
+            int rand_pos = rand() % this->cache_sets[set].size();
+            this->cache_sets[set].erase(this->cache_sets[set].begin() + rand_pos);
+        }
+    }
+    
+    this->cache_sets[set].push_back(address);
+}
+
+/**
  * Perform a load instruction at the specified address
  * @return The total number of cycles this instruction took
  */
 unsigned CacheSimulator::loadInstruction(unsigned address) {
-	unsigned totalIC = 0;
-	/**
-	 * todo 'Convert' address into a line tag
-	 * todo Determine if address is in memory, take appropriate policy action on hit or miss
-	 */
-	return totalIC;
+    unsigned totalIC = 1; //assume hit time is one
+    
+    if(this->isHit(address)){
+        (this->load_hits)++;
+    }
+    else{
+        this->loadIntoCache(address);
+        totalIC += this->config->getMissPenalty();
+    }
+
+    return totalIC;
 }
 
 /**
@@ -64,19 +120,27 @@ unsigned CacheSimulator::loadInstruction(unsigned address) {
  * @return The total number of cycles this instruction took
  */
 unsigned CacheSimulator::writeInstruction(unsigned address) {
-	unsigned totalIC = 0;
-	return totalIC;
+    //TODO
+    unsigned totalIC = 1; //assume hit time is one
+    return totalIC;
+}
+
+/**
+ * Write result of simulation to output file
+ */
+void CacheSimulator::writeResults(std::string filename){
+    //TODO
 }
 
 /**
  * Reset the cache
  * Called at the beginning of simulation
  */
-void CacheSimulator::reset_cache()
+void CacheSimulator::resetCache()
 {
     this->cache_sets = std::vector< std::deque<unsigned> >();
     
-    int num_sets = 1 << this->config->get_set_bits();
+    int num_sets = 1 << this->config->getSetBits();
     
     for(int i = 0; i < num_sets; ++i){
         this->cache_sets.push_back(std::deque<unsigned>());
@@ -152,20 +216,20 @@ CacheConfig::CacheConfig(std::string config_filename) {
  * This method prints out the config file
  */
 void CacheConfig::printConfig() {
-	std::cout << "Line Size:............" << this->line_size << "b" << std::endl;
-	std::cout << "Associativity:........" << this->assoc << std::endl;
-	std::cout << "Data Size:............" << this->data_size << "Kb" << std::endl;
-	std::cout << "Replacement Policy:...";
-	if (this->fifo == true)
-		std::cout << "FIFO" << std::endl;
-	else
-		std::cout << "Random" << std::endl;
-	std::cout << "Miss Penalty:........." << this->miss_penalty << std::endl;
-	std::cout << "Write Policy:.........";
-	if (this->write_allocate ==  true)
-		std::cout << "Write Allocate" << std::endl;
-	else
-		std::cout << "No Write Allocate" << std::endl;
+    std::cout << "Line Size:............" << this->line_size << "b" << std::endl;
+    std::cout << "Associativity:........" << this->assoc << std::endl;
+    std::cout << "Data Size:............" << this->data_size << "Kb" << std::endl;
+    std::cout << "Replacement Policy:...";
+    if (this->fifo == true)
+        std::cout << "FIFO" << std::endl;
+    else
+        std::cout << "Random" << std::endl;
+    std::cout << "Miss Penalty:........." << this->miss_penalty << std::endl;
+    std::cout << "Write Policy:.........";
+    if (this->write_allocate ==  true)
+        std::cout << "Write Allocate" << std::endl;
+    else
+        std::cout << "No Write Allocate" << std::endl;
 }
 
 int main(int argc, char** argv){
@@ -178,5 +242,5 @@ int main(int argc, char** argv){
 
     simConfig.printConfig();
     simulator.simulateTrace(argv[2]);
-    
+    simulator.writeResults(std::string(argv[2]) + ".out");
 }
