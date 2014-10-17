@@ -20,6 +20,7 @@
 #include <string>
 #include <vector>
 #include <deque>
+#include <cmath>
 
 class CacheConfig{
 public:
@@ -72,4 +73,21 @@ private:
     std::vector< std::deque<unsigned> > cache_sets;
     
     void reset_cache();
+};
+
+class BlockIdentifier {
+private:
+	CacheConfig *config;
+	//Create block byte field
+	unsigned blockOffset;
+	unsigned setIndex;
+	unsigned tag;
+
+public:
+	BlockIdentifier(CacheConfig* config, unsigned address);
+	unsigned getOffset(){return this->blockOffset;}
+	unsigned getIndex(){return this->setIndex;}
+	unsigned getTag(){return this->tag;}
+	void printBlock();
+
 };

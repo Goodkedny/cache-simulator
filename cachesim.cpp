@@ -51,12 +51,15 @@ void CacheSimulator::simulateTrace(std::string filename){
  * @return The total number of cycles this instruction took
  */
 unsigned CacheSimulator::loadInstruction(unsigned address) {
-	unsigned totalIC = 0;
+	unsigned totalCycleTime = 0;
+	BlockIdentifier block = BlockIdentifier(this->config, address);
+	std::cout << "Load Instruction..." << std::endl;
+	block.printBlock();
 	/**
 	 * todo 'Convert' address into a line tag
 	 * todo Determine if address is in memory, take appropriate policy action on hit or miss
 	 */
-	return totalIC;
+	return totalCycleTime;
 }
 
 /**
@@ -64,8 +67,11 @@ unsigned CacheSimulator::loadInstruction(unsigned address) {
  * @return The total number of cycles this instruction took
  */
 unsigned CacheSimulator::writeInstruction(unsigned address) {
-	unsigned totalIC = 0;
-	return totalIC;
+	unsigned totalCycleTime = 0;
+	BlockIdentifier block = BlockIdentifier(this->config, address);
+	std::cout << "Write Instruction..." << std::endl;
+	block.printBlock();
+	return totalCycleTime;
 }
 
 /**
@@ -166,6 +172,47 @@ void CacheConfig::printConfig() {
 		std::cout << "Write Allocate" << std::endl;
 	else
 		std::cout << "No Write Allocate" << std::endl;
+}
+
+/**
+ * Creates a new Block Identifier
+ * @param config The configuration parameters for the simulation
+ * @param address The requested address to be converted into a tag, set index, and block offset
+ */
+BlockIdentifier::BlockIdentifier(CacheConfig* config, unsigned address) {
+	this->config = config;
+	std::cout << "Address: 0x" << std::hex << address << std::dec << std::endl;
+	unsigned numOffsetBits = this->config->get_offset_bits();
+	unsigned numSetBits = this->config->get_set_bits();
+	unsigned numTagBits = 32 - numOffsetBits - numSetBits;
+	//Create Bit Masks to extract information from address
+	//This extracts each specific part of the address
+
+	//Ex Offset: 000....0001111
+	unsigned offsetMask = pow(2,numOffsetBits) - 1; //Create bitmask for Offset
+	//Ex Set Index: 000...0011111000....00000
+	unsigned setMask = pow(2, numSetBits + numOffsetBits) - 1; //Create bitmask for Set Index
+	setMask = setMask ^ offsetMask;
+	//Ex Tag: 11110000...00000
+	unsigned tagMask = pow(2,32) - 1; //Create bitmask for tag
+	tagMask = tagMask ^ (offsetMask | setMask);
+
+	//Extract bits from address
+	this->tag = tagMask & address;
+	//this->tag = (32 - numTagBits)<<this->tag; //Right shift tag to represent actual value from mask
+	this->setIndex = setMask & address;
+	//this->setIndex = (numOffsetBits)<<this->setIndex; //Right shift index to represent actual value from mask
+	this->blockOffset = offsetMask & address;
+}
+
+/**
+ * Prints out a Block Identifier
+ */
+void BlockIdentifier::printBlock() {
+	std::cout << "BLOCK" << std::endl;
+	std::cout << "Tag:............" << "0x" << std::hex << this->tag << std::dec << std::endl;
+	std::cout << "Set Index:......" << "0x" << std::hex << this->setIndex << std::dec << std::endl;
+	std::cout << "Block Offset:..." << this->blockOffset << std::endl << std::endl;
 }
 
 int main(int argc, char** argv){
