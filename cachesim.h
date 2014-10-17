@@ -36,6 +36,9 @@ public:
     unsigned get_offset_bits(){return this->offset_bits;}
     unsigned get_set_bits(){return this->set_bits;}
 
+    //Print method
+    void printConfig();
+
 private:
     unsigned line_size;
     unsigned assoc;

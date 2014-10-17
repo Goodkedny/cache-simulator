@@ -26,23 +26,24 @@ void CacheSimulator::simulateTrace(std::string filename){
     unsigned nonMemInstr; //Variable to hold non-memory access instruction count
 
     traceFile.open(filename);
-    //Line by line input from filename
     //todo Perform simulation
+    //For each Trace File instruction...
     while(getline(traceFile, buffer)) {
+
     	sscanf(buffer.c_str(), "%c %x %d", &instruction, &address, &nonMemInstr);
+
     	if (instruction == 's') {
     		//This instruction is a Write!
-    		std::cout << "Store instruction at: " << address << std::endl; //Debug line
     		this->total_memory_cycles += writeInstruction(address); //Add number of memory cycles this took
     	} else {
     		//This instruction is a Load!
-    		std::cout << "Load instruction at:  " << address << std::endl; //Debug line
     		this->total_memory_cycles += loadInstruction(address); //Add number of memory cycles this took
     	}
     	this->total_cycles += nonMemInstr; //Add previous non-memory instructions (Assumed all to take only 1 cycle each)
     }
     //Cleanup
     traceFile.close();
+    //std::cout << "Total # of cycles (non memory) " << this->total_cycles << std::endl;
 }
 
 /**
@@ -50,7 +51,12 @@ void CacheSimulator::simulateTrace(std::string filename){
  * @return The total number of cycles this instruction took
  */
 unsigned CacheSimulator::loadInstruction(unsigned address) {
-	return 0;
+	unsigned totalIC = 0;
+	/**
+	 * todo 'Convert' address into a line tag
+	 * todo Determine if address is in memory, take appropriate policy action on hit or miss
+	 */
+	return totalIC;
 }
 
 /**
@@ -58,7 +64,8 @@ unsigned CacheSimulator::loadInstruction(unsigned address) {
  * @return The total number of cycles this instruction took
  */
 unsigned CacheSimulator::writeInstruction(unsigned address) {
-	return 0;
+	unsigned totalIC = 0;
+	return totalIC;
 }
 
 /**
@@ -141,6 +148,26 @@ CacheConfig::CacheConfig(std::string config_filename) {
     }
 }
 
+/**
+ * This method prints out the config file
+ */
+void CacheConfig::printConfig() {
+	std::cout << "Line Size:............" << this->line_size << "b" << std::endl;
+	std::cout << "Associativity:........" << this->assoc << std::endl;
+	std::cout << "Data Size:............" << this->data_size << "Kb" << std::endl;
+	std::cout << "Replacement Policy:...";
+	if (this->fifo == true)
+		std::cout << "FIFO" << std::endl;
+	else
+		std::cout << "Random" << std::endl;
+	std::cout << "Miss Penalty:........." << this->miss_penalty << std::endl;
+	std::cout << "Write Policy:.........";
+	if (this->write_allocate ==  true)
+		std::cout << "Write Allocate" << std::endl;
+	else
+		std::cout << "No Write Allocate" << std::endl;
+}
+
 int main(int argc, char** argv){
     if(argc != 3){
         std::cerr << "Usage: " << argv[0] << " config_file trace_file" << std::endl;
@@ -148,6 +175,8 @@ int main(int argc, char** argv){
     }
     CacheConfig simConfig = CacheConfig(argv[1]); //Load configuration file from command args
     CacheSimulator simulator = CacheSimulator(&simConfig); //Initialize Simulator with configurations
+
+    simConfig.printConfig();
     simulator.simulateTrace(argv[2]);
     
 }
