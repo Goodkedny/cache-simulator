@@ -90,6 +90,8 @@ void CacheSimulator::loadIntoCache(BlockIdentifier block){
 unsigned CacheSimulator::loadInstruction(unsigned address) {
     unsigned totalCycleTime = 1; //assume hit time is one
     
+    (this->num_loads)++;
+    
     BlockIdentifier block = BlockIdentifier(this->config, address);
     
     std::cout << "Load Instruction..." << std::endl;
@@ -112,6 +114,9 @@ unsigned CacheSimulator::loadInstruction(unsigned address) {
  */
 unsigned CacheSimulator::writeInstruction(unsigned address) {
     unsigned totalCycleTime = 0;
+    
+    (this->num_stores)++;
+    
     BlockIdentifier block = BlockIdentifier(this->config, address);
     std::cout << "Write Instruction..." << std::endl;
     block.printBlock();
