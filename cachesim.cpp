@@ -18,7 +18,47 @@
 
 void CacheSimulator::simulateTrace(std::string filename){
     this->reset_cache();
-    //todo: simulation
+
+    std::ifstream traceFile;
+    std::string buffer;
+    char instruction; //Variable to hold load or write instruction specifier
+    unsigned address; //Variable to hold instruction address
+    unsigned nonMemInstr; //Variable to hold non-memory access instruction count
+
+    traceFile.open(filename);
+    //Line by line input from filename
+    //todo Perform simulation
+    while(getline(traceFile, buffer)) {
+    	sscanf(buffer.c_str(), "%c %x %d", &instruction, &address, &nonMemInstr);
+    	if (instruction == 's') {
+    		//This instruction is a Write!
+    		std::cout << "Store instruction at: " << address << std::endl; //Debug line
+    		this->total_memory_cycles += writeInstruction(address); //Add number of memory cycles this took
+    	} else {
+    		//This instruction is a Load!
+    		std::cout << "Load instruction at:  " << address << std::endl; //Debug line
+    		this->total_memory_cycles += loadInstruction(address); //Add number of memory cycles this took
+    	}
+    	this->total_cycles += nonMemInstr; //Add previous non-memory instructions (Assumed all to take only 1 cycle each)
+    }
+    //Cleanup
+    traceFile.close();
+}
+
+/**
+ * Perform a load instruction at the specified address
+ * @return The total number of cycles this instruction took
+ */
+unsigned CacheSimulator::loadInstruction(unsigned address) {
+	return 0;
+}
+
+/**
+ * Perform a write instruction at the specified address
+ * @return The total number of cycles this instruction took
+ */
+unsigned CacheSimulator::writeInstruction(unsigned address) {
+	return 0;
 }
 
 /**
@@ -79,7 +119,7 @@ CacheConfig::CacheConfig(std::string config_filename) {
     configFile.close();
     
     int num_blocks = this->data_size * 1024 / this->line_size;
-    
+
     //if fully associative, can change associativity to num_blocks (more uniform to work with)
     if(this->assoc == 0){
         this->assoc = num_blocks;
@@ -106,14 +146,8 @@ int main(int argc, char** argv){
         std::cerr << "Usage: " << argv[0] << " config_file trace_file" << std::endl;
         exit(1);
     }
-    //Test config
-    CacheConfig testConfig = CacheConfig(argv[1]);
-    std::cout << "Line Size:     " << testConfig.get_line_size() << std::endl;
-    std::cout << "Associativity: " << testConfig.get_assoc() << std::endl;
-    std::cout << "Data Size:     " << testConfig.get_data_size() << std::endl;
-    std::cout << "Miss Penalty:  " << testConfig.get_miss_penalty() << std::endl;
-    std::cout << "Set index bits " << testConfig.get_set_bits() << std::endl;
-    std::cout << "Offset bits    " << testConfig.get_offset_bits() << std::endl;
+    CacheConfig simConfig = CacheConfig(argv[1]); //Load configuration file from command args
+    CacheSimulator simulator = CacheSimulator(&simConfig); //Initialize Simulator with configurations
+    simulator.simulateTrace(argv[2]);
     
-    CacheSimulator simulator = CacheSimulator(&testConfig);
 }

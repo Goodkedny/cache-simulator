@@ -16,6 +16,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <cstdio>
 #include <string>
 #include <vector>
 #include <deque>
@@ -52,6 +53,8 @@ class CacheSimulator{
 public:
     CacheSimulator(CacheConfig* config);
     void simulateTrace(std::string filename);
+    unsigned loadInstruction(unsigned address);
+    unsigned writeInstruction(unsigned address);
     void writeResults(std::string filename);
 private:
     CacheConfig* config;
