@@ -86,7 +86,7 @@ private:
     unsigned num_stores = 0;
     unsigned load_hits = 0;
     unsigned store_hits = 0;
-    unsigned total_cycles = 0;
+    unsigned total_non_memory_cycles = 0;
     unsigned total_memory_cycles = 0;
     
     std::vector< std::deque<unsigned> > cache_sets;

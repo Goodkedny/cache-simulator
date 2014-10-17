@@ -39,7 +39,7 @@ void CacheSimulator::simulateTrace(std::string filename){
             //This instruction is a Load!
             this->total_memory_cycles += loadInstruction(address); //Add number of memory cycles this took
         }
-        this->total_cycles += nonMemInstr; //Add previous non-memory instructions (Assumed all to take only 1 cycle each)
+        this->total_non_memory_cycles += nonMemInstr; //Add previous non-memory instructions (Assumed all to take only 1 cycle each)
     }
     //Cleanup
     traceFile.close();
@@ -111,8 +111,6 @@ unsigned CacheSimulator::loadInstruction(unsigned address) {
  * @return The total number of cycles this instruction took
  */
 unsigned CacheSimulator::writeInstruction(unsigned address) {
-    //TODO
-
     unsigned totalCycleTime = 0;
     BlockIdentifier block = BlockIdentifier(this->config, address);
     std::cout << "Write Instruction..." << std::endl;
@@ -152,7 +150,7 @@ void CacheSimulator::writeResults(std::string filename){
     outfile << ((float) this->store_hits) / this->num_stores << std::endl;
     
     //total run time
-    outfile << this->total_cycles << std::endl;
+    outfile << this->total_memory_cycles + this->total_non_memory_cycles << std::endl;
     
     //average memory access latency
     outfile << ((float) this->total_memory_cycles) / (this->num_loads + this->num_stores) << std::endl;
@@ -178,7 +176,7 @@ void CacheSimulator::resetCache()
     this->num_stores = 0;
     this->load_hits = 0;
     this->store_hits = 0;
-    this->total_cycles = 0;
+    this->total_non_memory_cycles = 0;
     this->total_memory_cycles = 0;
 }
 
