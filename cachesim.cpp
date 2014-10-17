@@ -199,9 +199,9 @@ BlockIdentifier::BlockIdentifier(CacheConfig* config, unsigned address) {
 
 	//Extract bits from address
 	this->tag = tagMask & address;
-	//this->tag = (32 - numTagBits)<<this->tag; //Right shift tag to represent actual value from mask
+	this->tag = this->tag >> (32 - numTagBits); //Right shift tag to represent actual value from mask
 	this->setIndex = setMask & address;
-	//this->setIndex = (numOffsetBits)<<this->setIndex; //Right shift index to represent actual value from mask
+	this->setIndex = this->setIndex >> (numOffsetBits); //Right shift index to represent actual value from mask
 	this->blockOffset = offsetMask & address;
 }
 
