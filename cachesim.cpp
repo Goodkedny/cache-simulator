@@ -117,6 +117,21 @@ unsigned CacheSimulator::writeInstruction(unsigned address) {
     BlockIdentifier block = BlockIdentifier(this->config, address);
     std::cout << "Write Instruction..." << std::endl;
     block.printBlock();
+    
+    if(this->isHit(block)){
+        (this->store_hits)++;
+        if(! this->config->isWriteAllocate()){ //write through
+            totalCycleTime += this->config->getMissPenalty();
+        }
+    }
+    else{
+        totalCycleTime += this->config->getMissPenalty();
+        
+        if(this->config->isWriteAllocate()){
+            this->loadIntoCache(block);
+        }
+    }
+    
     return totalCycleTime;
 }
 
@@ -124,7 +139,25 @@ unsigned CacheSimulator::writeInstruction(unsigned address) {
  * Write result of simulation to output file
  */
 void CacheSimulator::writeResults(std::string filename){
-    //TODO
+    std::ofstream outfile;
+    outfile.open(filename);
+    
+    //total hit rate
+    outfile << ((float) (this->load_hits + this->store_hits)) / (this->num_loads + this->num_stores) << std::endl;
+    
+    //load hit rate
+    outfile << ((float) this->load_hits) / this->num_loads << std::endl;
+    
+    //store hit rate
+    outfile << ((float) this->store_hits) / this->num_stores << std::endl;
+    
+    //total run time
+    outfile << this->total_cycles << std::endl;
+    
+    //average memory access latency
+    outfile << ((float) this->total_memory_cycles) / (this->num_loads + this->num_stores) << std::endl;
+    
+    outfile.close();
 }
 
 /**
