@@ -47,25 +47,11 @@ void CacheSimulator::simulateTrace(std::string filename){
 }
 
 /**
- * Get tag bits of address
- */
-unsigned CacheSimulator::getTag(unsigned address){
-    return address >> (this->config->getSetBits() + this->config->getOffsetBits());
-}
-
-/**
- * Get set index bits of address
- */
-unsigned CacheSimulator::getSet(unsigned address){
-    return (address >> this->config->getOffsetBits()) & ((1 << this->config->getSetBits()) - 1);
-}
-
-/**
  * determine if an address is in the cache
  */
-bool CacheSimulator::isHit(unsigned address){
-    unsigned tag = this->getTag(address);
-    unsigned set = this->getSet(address);
+bool CacheSimulator::isHit(BlockIdentifier block){
+    unsigned tag = block.getTag();
+    unsigned set = block.getIndex();
     
     for(unsigned entry : cache_sets[set]){
         if(tag == entry){
@@ -79,9 +65,9 @@ bool CacheSimulator::isHit(unsigned address){
  * Load block into cache
  * assumes block is not in cache
  */
-void CacheSimulator::loadIntoCache(unsigned address){
-    unsigned tag = this->getTag(address);
-    unsigned set = this->getSet(address);
+void CacheSimulator::loadIntoCache(BlockIdentifier block){
+    unsigned tag = block.getTag();
+    unsigned set = block.getIndex();
     
     //kick someone out if necessary
     if(this->cache_sets[set].size() == this->config->getAssoc()){
@@ -94,7 +80,7 @@ void CacheSimulator::loadIntoCache(unsigned address){
         }
     }
     
-    this->cache_sets[set].push_back(address);
+    this->cache_sets[set].push_back(tag);
 }
 
 /**
@@ -102,17 +88,22 @@ void CacheSimulator::loadIntoCache(unsigned address){
  * @return The total number of cycles this instruction took
  */
 unsigned CacheSimulator::loadInstruction(unsigned address) {
-    unsigned totalIC = 1; //assume hit time is one
+    unsigned totalCycleTime = 1; //assume hit time is one
     
-    if(this->isHit(address)){
+    BlockIdentifier block = BlockIdentifier(this->config, address);
+    
+    std::cout << "Load Instruction..." << std::endl;
+    block.printBlock();
+    
+    if(this->isHit(block)){
         (this->load_hits)++;
     }
     else{
-        this->loadIntoCache(address);
-        totalIC += this->config->getMissPenalty();
+        this->loadIntoCache(block);
+        totalCycleTime += this->config->getMissPenalty();
     }
 
-    return totalIC;
+    return totalCycleTime;
 }
 
 /**
@@ -121,8 +112,12 @@ unsigned CacheSimulator::loadInstruction(unsigned address) {
  */
 unsigned CacheSimulator::writeInstruction(unsigned address) {
     //TODO
-    unsigned totalIC = 1; //assume hit time is one
-    return totalIC;
+
+    unsigned totalCycleTime = 0;
+    BlockIdentifier block = BlockIdentifier(this->config, address);
+    std::cout << "Write Instruction..." << std::endl;
+    block.printBlock();
+    return totalCycleTime;
 }
 
 /**
@@ -230,6 +225,47 @@ void CacheConfig::printConfig() {
         std::cout << "Write Allocate" << std::endl;
     else
         std::cout << "No Write Allocate" << std::endl;
+}
+
+/**
+ * Creates a new Block Identifier
+ * @param config The configuration parameters for the simulation
+ * @param address The requested address to be converted into a tag, set index, and block offset
+ */
+BlockIdentifier::BlockIdentifier(CacheConfig* config, unsigned address) {
+	this->config = config;
+	std::cout << "Address: 0x" << std::hex << address << std::dec << std::endl;
+	unsigned numOffsetBits = this->config->getOffsetBits();
+	unsigned numSetBits = this->config->getSetBits();
+	unsigned numTagBits = 32 - numOffsetBits - numSetBits;
+	//Create Bit Masks to extract information from address
+	//This extracts each specific part of the address
+
+	//Ex Offset: 000....0001111
+	unsigned offsetMask = pow(2,numOffsetBits) - 1; //Create bitmask for Offset
+	//Ex Set Index: 000...0011111000....00000
+	unsigned setMask = pow(2, numSetBits + numOffsetBits) - 1; //Create bitmask for Set Index
+	setMask = setMask ^ offsetMask;
+	//Ex Tag: 11110000...00000
+	unsigned tagMask = pow(2,32) - 1; //Create bitmask for tag
+	tagMask = tagMask ^ (offsetMask | setMask);
+
+	//Extract bits from address
+	this->tag = tagMask & address;
+	//this->tag = (32 - numTagBits)<<this->tag; //Right shift tag to represent actual value from mask
+	this->setIndex = setMask & address;
+	//this->setIndex = (numOffsetBits)<<this->setIndex; //Right shift index to represent actual value from mask
+	this->blockOffset = offsetMask & address;
+}
+
+/**
+ * Prints out a Block Identifier
+ */
+void BlockIdentifier::printBlock() {
+	std::cout << "BLOCK" << std::endl;
+	std::cout << "Tag:............" << "0x" << std::hex << this->tag << std::dec << std::endl;
+	std::cout << "Set Index:......" << "0x" << std::hex << this->setIndex << std::dec << std::endl;
+	std::cout << "Block Offset:..." << this->blockOffset << std::endl << std::endl;
 }
 
 int main(int argc, char** argv){
