@@ -94,8 +94,8 @@ unsigned CacheSimulator::loadInstruction(unsigned address) {
     
     BlockIdentifier block = BlockIdentifier(this->config, address);
     
-    std::cout << "Load Instruction..." << std::endl;
-    block.printBlock();
+    //std::cout << "Load Instruction..." << std::endl; //Debug Lines: Enable to see each load instruction
+    //block.printBlock();
     
     if(this->isHit(block)){
         (this->load_hits)++;
@@ -118,8 +118,8 @@ unsigned CacheSimulator::writeInstruction(unsigned address) {
     (this->num_stores)++;
     
     BlockIdentifier block = BlockIdentifier(this->config, address);
-    std::cout << "Write Instruction..." << std::endl;
-    block.printBlock();
+    //std::cout << "Write Instruction..." << std::endl; //Debug Lines: Enable to see each write instruction
+    //block.printBlock();
     
     if(this->isHit(block)){
         (this->store_hits)++;
@@ -270,19 +270,18 @@ void CacheConfig::printConfig() {
  */
 BlockIdentifier::BlockIdentifier(CacheConfig* config, unsigned address) {
 	this->config = config;
-	std::cout << "Address: 0x" << std::hex << address << std::dec << std::endl;
 	unsigned numOffsetBits = this->config->getOffsetBits();
 	unsigned numSetBits = this->config->getSetBits();
-	unsigned numTagBits = 32 - numOffsetBits - numSetBits;
+	unsigned numTagBits = 32 - numOffsetBits - numSetBits; //Remainder of bits is used for tag
+
 	//Create Bit Masks to extract information from address
 	//This extracts each specific part of the address
-
-	//Ex Offset: 000....0001111
+	//Ex Offset bitmask: 000....0001111
 	unsigned offsetMask = pow(2,numOffsetBits) - 1; //Create bitmask for Offset
-	//Ex Set Index: 000...0011111000....00000
+	//Ex Set Index bitmask: 000...0011111000....00000
 	unsigned setMask = pow(2, numSetBits + numOffsetBits) - 1; //Create bitmask for Set Index
 	setMask = setMask ^ offsetMask;
-	//Ex Tag: 11110000...00000
+	//Ex Tag bitmask: 11110000...00000
 	unsigned tagMask = pow(2,32) - 1; //Create bitmask for tag
 	tagMask = tagMask ^ (offsetMask | setMask);
 
