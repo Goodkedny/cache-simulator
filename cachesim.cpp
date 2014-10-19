@@ -113,7 +113,7 @@ unsigned CacheSimulator::loadInstruction(unsigned address) {
  * @return The total number of cycles this instruction took
  */
 unsigned CacheSimulator::writeInstruction(unsigned address) {
-    unsigned totalCycleTime = 0;
+    unsigned totalCycleTime = 1; //assume hit time is one
     
     (this->num_stores)++;
     
@@ -203,7 +203,7 @@ CacheConfig::CacheConfig(std::string config_filename) {
     if (buf == 0) {
         //Replacement Policy is Random Placement
         this->fifo = false;
-    } else if (buf == 0) {
+    } else if (buf == 1) {
         //Replacement Policy is FIFO
         this->fifo = true;
     }
@@ -311,7 +311,7 @@ int main(int argc, char** argv){
     CacheConfig simConfig = CacheConfig(argv[1]); //Load configuration file from command args
     CacheSimulator simulator = CacheSimulator(&simConfig); //Initialize Simulator with configurations
 
-    simConfig.printConfig();
+    //simConfig.printConfig();
     simulator.simulateTrace(argv[2]);
     simulator.writeResults(std::string(argv[2]) + ".out");
 }
