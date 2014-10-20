@@ -21,17 +21,15 @@ void CacheSimulator::simulateTrace(std::string filename){
 
     std::ifstream traceFile;
     std::string buffer;
-    char instruction; //Variable to hold load or write instruction specifier
-    unsigned address; //Variable to hold instruction address
+    char instruction;     //Variable to hold load or write instruction specifier
+    unsigned address;     //Variable to hold instruction address
     unsigned nonMemInstr; //Variable to hold non-memory access instruction count
 
     traceFile.open(filename);
-    //todo Perform simulation
-    //For each Trace File instruction...
+    //Get each instruction from trace file
     while(getline(traceFile, buffer)) {
 
         sscanf(buffer.c_str(), "%c %x %d", &instruction, &address, &nonMemInstr);
-
         if (instruction == 's') {
             //This instruction is a Write!
             this->total_memory_cycles += writeInstruction(address); //Add number of memory cycles this took
@@ -43,7 +41,6 @@ void CacheSimulator::simulateTrace(std::string filename){
     }
     //Cleanup
     traceFile.close();
-    //std::cout << "Total # of cycles (non memory) " << this->total_cycles << std::endl;
 }
 
 /**
@@ -94,9 +91,6 @@ unsigned CacheSimulator::loadInstruction(unsigned address) {
     
     BlockIdentifier block = BlockIdentifier(this->config, address);
     
-    //std::cout << "Load Instruction..." << std::endl; //Debug Lines: Enable to see each load instruction
-    //block.printBlock();
-    
     if(this->isHit(block)){
         (this->load_hits)++;
     }
@@ -118,8 +112,6 @@ unsigned CacheSimulator::writeInstruction(unsigned address) {
     (this->num_stores)++;
     
     BlockIdentifier block = BlockIdentifier(this->config, address);
-    //std::cout << "Write Instruction..." << std::endl; //Debug Lines: Enable to see each write instruction
-    //block.printBlock();
     
     if(this->isHit(block)){
         (this->store_hits)++;
@@ -196,26 +188,22 @@ CacheConfig::CacheConfig(std::string config_filename) {
     std::ifstream configFile;
     short int buf;
     configFile.open(config_filename);
-    configFile >> this->line_size; //Read in Line Size
-    configFile >> this->assoc; //Read in Cache Associativity
-    configFile >> this->data_size; //Read in Data Size
-    configFile >> buf; //Read in Replacement Policy
+    configFile >> this->line_size;	//Read in Line Size
+    configFile >> this->assoc; 		//Read in Cache Associativity
+    configFile >> this->data_size; 	//Read in Data Size
+    configFile >> buf; 				//Read in Replacement Policy
     if (buf == 0) {
-        //Replacement Policy is Random Placement
-        this->fifo = false;
+        this->fifo = false;	//Replacement Policy is Random Placement
     } else if (buf == 1) {
-        //Replacement Policy is FIFO
-        this->fifo = true;
+        this->fifo = true;	//Replacement Policy is FIFO
     }
     configFile >> this->miss_penalty; //Read in Miss Penalty
     
     configFile >> buf; //Read in Write Policy
     if (buf == 0) {
-        //Write Policy is No Write Allocate
-        this->write_allocate = false;
+        this->write_allocate = false; //Write Policy is No Write Allocate
     } else if (buf == 1) {
-        //Write Policy is Write Allocate
-        this->write_allocate = true;
+        this->write_allocate = true;  //Write Policy is Write Allocate
     }
     //Clean up
     configFile.close();
@@ -308,10 +296,10 @@ int main(int argc, char** argv){
         std::cerr << "Usage: " << argv[0] << " config_file trace_file" << std::endl;
         exit(1);
     }
+    //Setup Configuration
     CacheConfig simConfig = CacheConfig(argv[1]); //Load configuration file from command args
     CacheSimulator simulator = CacheSimulator(&simConfig); //Initialize Simulator with configurations
-
-    //simConfig.printConfig();
+    //Perform simulation
     simulator.simulateTrace(argv[2]);
     simulator.writeResults(std::string(argv[2]) + ".out");
 }
