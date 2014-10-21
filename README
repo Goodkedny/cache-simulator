@@ -3,3 +3,32 @@ How to compile:
 
 How to run:
     ./cachesim config_file trace_file
+
+To run all simulations use
+	run_simulations.sh
+	Make sure that
+		1. All trace files are found in a folder named "traces"
+		2. All configuration files are in a folder named "lab2_conf"
+
+GitHub Repository:
+	github.com/thegui/cache-simulator
+
+Credit:
+Theresa Guinard:
+	Initial Git Repository setup
+	Cache Simulation Structure and Logic
+		FIFO vs Random
+		Associativity
+		Hit or Miss counting
+	File Output and Graphing
+		All python scripts
+		Simulation Results
+William Fong:
+	File Input
+		Configuration file loading
+		Trace File loading
+	Address conversion
+		Address to Tag, Set Index, and Offset
+	Block and Config print statements
+		Debug print outs
+	
